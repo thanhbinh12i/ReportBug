@@ -1,35 +1,51 @@
-import { Button, Input } from 'antd';
+import { Button, Form, Input } from 'antd';
 import { UserOutlined, LockOutlined, TwitterOutlined } from '@ant-design/icons';
-import { withFormik } from 'formik'
-import * as Yup from 'yup';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { checkLogin } from '../../redux/actions/login';
 import { cyberbugsService } from '../../services/cyberBugServices';
 import { TOKEN, USER_LOGIN } from '../../utils/settingSystem';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 function Login(props) {
+      const [loading, setLoading] = useState(false);
       const navigate = useNavigate();
-      const {
-            errors,
-            handleChange,
-            handleSubmit,
-      } = props;
+      const dispatch = useDispatch();
+      
+      const handleSubmit = async (values) => {
+            const userLogin = {
+                  email: values.email,
+                  password: values.password
+            }
+            setLoading(true);
+            console.log(userLogin);
+            try {
+                  const response = await cyberbugsService.signIn(userLogin);
+                  if (response) {
+                        localStorage.setItem(TOKEN, response.data.content.accessToken);
+                        localStorage.setItem(USER_LOGIN, JSON.stringify(response.data.content));
+                        dispatch(checkLogin(true));
+                        navigate("/");
+                  }
+            } catch (error) {
+                  console.error('Login failed:', error);
+            } finally {
+                  setLoading(false);
+            }
+      }
       return (
             <>
-                  <form onSubmit={handleSubmit} className="container" style={{ height: window.innerHeight }} >
+                  <Form onFinish={handleSubmit} className="container" style={{ height: window.innerHeight }} >
                         <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: window.innerHeight }} >
                               <h3 className="text-center" style={{ fontWeight: 300, fontSize: 35 }}>Login</h3>
-                              <div className="d-flex mt-3" >
-                                    <Input onChange={handleChange} style={{ width: '100%', minWidth: 300 }} name="email" size="large" placeholder="email" prefix={<UserOutlined />} />
-                              </div>
-                              <div className="text-danger">{errors.email}</div>
-                              <div className="d-flex mt-3">
-                                    <Input onChange={handleChange} style={{ width: '100%', minWidth: 300 }} type="password" name="password" size="large" placeholder="password" prefix={<LockOutlined />} />
-                              </div>
-                              <div className="text-danger">{errors.password}</div>
+                              <Form.Item className="d-flex mt-3" name="email">
+                                    <Input style={{ width: '100%', minWidth: 300 }} size="large" placeholder="email" prefix={<UserOutlined />} />
+                              </Form.Item>
+                              <Form.Item className="d-flex" name="password">
+                                    <Input style={{ width: '100%', minWidth: 300 }} type="password" size="large" placeholder="password" prefix={<LockOutlined />} />
+                              </Form.Item>
 
-                              <Button htmlType="submit" size="large" style={{ minWidth: 300, backgroundColor: 'rgb(102,117,223)', color: '#fff' }} className="mt-5">Login</Button>
+                              <Button htmlType="submit" loading={loading} size="large" style={{ minWidth: 300, backgroundColor: 'rgb(102,117,223)', color: '#fff' }}>Login</Button>
 
                               <div className="social mt-3 d-flex">
                                     <Button style={{ backgroundColor: 'rgb(59,89,152)' }} shape="circle" size={"large"}>
@@ -41,41 +57,9 @@ function Login(props) {
                               </div>
                         </div>
 
-                  </form>
+                  </Form>
             </>
       )
 }
-const LoginWithFormik = withFormik({
-      mapPropsToValues: () => ({
-            email: '',
-            password: ''
-      }),
-      validationSchema: Yup.object().shape({
-            email: Yup.string().required('Email is required!').email('Email is invalid!'),
-            password: Yup.string().min(6, 'password must have min 6 characters').max(32, 'password  have max 32 characters')
 
-      }),
-      handleSubmit: async (values, { props, setSubmitting }) => {
-            const userLogin = {
-                  email: values.email,
-                  password: values.password
-            }
-            setSubmitting(true);
-
-            try {
-                  const response = await cyberbugsService.signIn(userLogin);
-                  if (response) {
-                        localStorage.setItem(TOKEN, response.data.content.accessToken);
-                        localStorage.setItem(USER_LOGIN, JSON.stringify(response.data.content));
-                        props.dispatch(checkLogin(true));
-                        props.navigate("/");
-                  }
-            } catch (error) {
-                  console.error('Login failed:', error);
-            } finally {
-                  setSubmitting(false);
-            }
-      },
-      displayName: 'Login',
-})(Login);
-export default connect()(LoginWithFormik);
+export default Login;

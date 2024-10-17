@@ -1,5 +1,5 @@
-const { default: Axios } = require("axios")
-const { DOMAIN_CYBERBUG, TOKEN } = require("../utils/settingSystem.js")
+import Axios from "axios";
+const { DOMAIN_CYBERBUG, TOKEN } = require("../utils/settingSystem.js");
 
 export const cyberbugsService = {
       signIn: (userLogin) => {
