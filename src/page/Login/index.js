@@ -7,7 +7,7 @@ import { TOKEN, USER_LOGIN } from '../../utils/settingSystem';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
-function Login(props) {
+function Login() {
       const [loading, setLoading] = useState(false);
       const navigate = useNavigate();
       const dispatch = useDispatch();

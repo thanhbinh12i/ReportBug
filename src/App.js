@@ -1,13 +1,11 @@
 
 import './App.css';
-import LayoutDefault from './layout/LayoutDefault';
-import Login from './page/Login';
+import AllRoute from './components/AllRoutes';
 
 function App() {
   return (
     <div>
-      {/* <Login /> */}
-      <LayoutDefault />
+      <AllRoute />
     </div>
   );
 }
